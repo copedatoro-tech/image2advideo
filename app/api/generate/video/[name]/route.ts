@@ -1,11 +1,11 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 
 type Params = {
   name: string;
 };
 
 export async function GET(
-  request: Request,
+  request: NextRequest,
   context: { params: Params }
 ) {
   try {
@@ -18,7 +18,10 @@ export async function GET(
     });
   } catch (error) {
     return NextResponse.json(
-      { success: false, error: "Internal Server Error" },
+      {
+        success: false,
+        error: "Internal server error",
+      },
       { status: 500 }
     );
   }
