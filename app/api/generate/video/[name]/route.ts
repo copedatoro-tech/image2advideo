@@ -1,28 +1,23 @@
 import { NextRequest, NextResponse } from "next/server";
 
-type Params = {
-  name: string;
-};
-
-export async function GET(
+export async function POST(
   request: NextRequest,
-  context: { params: Params }
+  context: { params: Promise<{ name: string }> }
 ) {
+  const { name } = await context.params;
+
   try {
-    const { name } = context.params;
+    const body = await request.json();
 
     return NextResponse.json({
       success: true,
-      message: "Video generation endpoint working",
       videoName: name,
+      payload: body,
     });
-  } catch (error) {
+  } catch {
     return NextResponse.json(
-      {
-        success: false,
-        error: "Internal server error",
-      },
-      { status: 500 }
+      { success: false, error: "Invalid request body" },
+      { status: 400 }
     );
   }
 }

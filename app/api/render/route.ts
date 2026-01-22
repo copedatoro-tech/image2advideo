@@ -1,24 +1,21 @@
-import { NextResponse } from "next/server"
-import { exec } from "child_process"
-import path from "path"
+import { NextRequest, NextResponse } from "next/server";
 
-export async function POST() {
-  return new Promise((resolve) => {
-    const script = path.join(process.cwd(), "video-engine", "render.js")
+export async function POST(request: NextRequest): Promise<Response> {
+  try {
+    const body = await request.json();
 
-    exec(`node "${script}"`, (err) => {
-      if (err) {
-        resolve(
-          NextResponse.json({ error: "Video failed" }, { status: 500 })
-        )
-      } else {
-        resolve(
-          NextResponse.json({
-            success: true,
-            video: "/videos/result.mp4",
-          })
-        )
-      }
-    })
-  })
+    return NextResponse.json({
+      success: true,
+      message: "Render started successfully",
+      payload: body,
+    });
+  } catch (error) {
+    return NextResponse.json(
+      {
+        success: false,
+        error: "Render request failed",
+      },
+      { status: 500 }
+    );
+  }
 }

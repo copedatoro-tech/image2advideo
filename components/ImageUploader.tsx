@@ -1,21 +1,32 @@
 "use client";
 
+import { Dispatch, SetStateAction } from "react";
+
+type ImageUploaderProps = {
+  images: File[];
+  setImages: Dispatch<SetStateAction<File[]>>;
+};
+
 export default function ImageUploader({
-  onChange,
-}: {
-  onChange: (files: File[]) => void;
-}) {
+  images,
+  setImages,
+}: ImageUploaderProps) {
+  function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
+    if (!e.target.files) return;
+    setImages(Array.from(e.target.files));
+  }
+
   return (
-    <div style={{ marginTop: 20 }}>
+    <div>
       <input
         type="file"
         accept="image/*"
         multiple
-        onChange={(e) => {
-          if (!e.target.files) return;
-          onChange(Array.from(e.target.files));
-        }}
+        onChange={handleChange}
       />
+      {images.length > 0 && (
+        <p>{images.length} image(s) selected</p>
+      )}
     </div>
   );
 }
