@@ -1,21 +1,25 @@
-import fs from "fs";
-import path from "path";
+import { NextResponse } from "next/server";
+
+type Params = {
+  name: string;
+};
 
 export async function GET(
-  req: Request,
-  { params }: { params: { name: string } }
+  request: Request,
+  context: { params: Params }
 ) {
-  const filePath = path.join(
-    process.cwd(),
-    "video-engine/output",
-    params.name
-  );
+  try {
+    const { name } = context.params;
 
-  const stream = fs.createReadStream(filePath);
-
-  return new Response(stream as any, {
-    headers: {
-      "Content-Type": "video/mp4",
-    },
-  });
+    return NextResponse.json({
+      success: true,
+      message: "Video generation endpoint working",
+      videoName: name,
+    });
+  } catch (error) {
+    return NextResponse.json(
+      { success: false, error: "Internal Server Error" },
+      { status: 500 }
+    );
+  }
 }
