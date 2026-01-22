@@ -1,19 +1,18 @@
-import "./globals.css";
-import type { Metadata } from "next";
+import "./globals.css"
 
-export const metadata: Metadata = {
+export const metadata = {
   title: "Image2AdVideo AI",
-  description: "Transformă o imagine într-un video publicitar cinematic.",
-};
+  description: "Generate premium video ads from images",
+}
 
 export default function RootLayout({
   children,
 }: {
-  children: React.ReactNode;
+  children: React.ReactNode
 }) {
   return (
-    <html lang="ro">
+    <html lang="en">
       <body>{children}</body>
     </html>
-  );
+  )
 }

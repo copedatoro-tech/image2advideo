@@ -1,102 +1,88 @@
-"use client";
+"use client"
 
-import { useRef, useState } from "react";
+import { useState, useMemo } from "react"
+import ImageUploader from "@/components/ImageUploader"
+import VideoOptions from "@/components/VideoOptions"
+import GenerateButton from "@/components/GenerateButton"
+import PreviewPanel from "@/components/PreviewPanel"
 
-export default function Page() {
-  const inputRef = useRef<HTMLInputElement | null>(null);
-  const [images, setImages] = useState<string[]>([]);
-  const [loading, setLoading] = useState(false);
+type Format = "9:16" | "1:1" | "16:9"
+type Duration = "15" | "30" | "60"
+type Style = "Luxury" | "Cinematic" | "Social"
 
-  const openFilePicker = () => {
-    inputRef.current?.click();
-  };
+export default function HomePage() {
+  const [images, setImages] = useState<File[]>([])
+  const [format, setFormat] = useState<Format>("9:16")
+  const [duration, setDuration] = useState<Duration>("15")
+  const [style, setStyle] = useState<Style>("Luxury")
 
-  const onImagesSelected = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = Array.from(e.target.files || []);
-    const urls = files.map((file) => URL.createObjectURL(file));
-    setImages(urls);
-  };
+  const [isGenerating, setIsGenerating] = useState(false)
+  const [videoUrl, setVideoUrl] = useState<string | null>(null)
 
-  const generateVideo = async () => {
-    if (images.length === 0) return;
-    setLoading(true);
+  const price = useMemo(() => {
+    let base = 5
+    if (duration === "30") base += 3
+    if (duration === "60") base += 6
+    if (style === "Luxury") base += 4
+    if (style === "Cinematic") base += 2
+    base += images.length
+    return base
+  }, [duration, style, images.length])
 
-    // mock – simulare generare video
-    await new Promise((r) => setTimeout(r, 2000));
+  const handleGenerate = async () => {
+    if (images.length === 0) return
 
-    alert("Video generat cu succes (mock)");
-    setLoading(false);
-  };
+    setIsGenerating(true)
+    setVideoUrl(null)
+
+    const formData = new FormData()
+    images.forEach((img) => formData.append("images", img))
+    formData.append("format", format)
+    formData.append("duration", duration)
+    formData.append("style", style)
+
+    const res = await fetch("/api/generate-video", {
+      method: "POST",
+      body: formData,
+    })
+
+    const data = await res.json()
+    setVideoUrl(data.videoUrl)
+    setIsGenerating(false)
+  }
 
   return (
-    <div
-      style={{
-        minHeight: "100vh",
-        padding: 40,
-        background: "radial-gradient(circle at top, #0f172a, #020617)",
-        color: "white",
-      }}
-    >
-      <h1 style={{ fontSize: 48, marginBottom: 10 }}>
-        Image2AdVideo AI
-      </h1>
+    <main className="min-h-screen px-8 py-16 text-white bg-gradient-to-br from-black via-[#050b18] to-black">
+      <div className="max-w-6xl mx-auto">
+        <div className="text-center mb-16">
+          <h1 className="text-5xl font-light">Image2AdVideo AI</h1>
+          <p className="text-white/60 mt-4">
+            Creează reclame video premium din imagini
+          </p>
+        </div>
 
-      <p style={{ opacity: 0.8, marginBottom: 30 }}>
-        Transformă imaginile tale într-un video publicitar cinematic.
-      </p>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-start">
+          <div className="space-y-10">
+            <ImageUploader images={images} setImages={setImages} />
+            <VideoOptions
+              format={format}
+              setFormat={setFormat}
+              duration={duration}
+              setDuration={setDuration}
+              style={style}
+              setStyle={setStyle}
+            />
+            <GenerateButton onClick={handleGenerate} price={price} />
+          </div>
 
-      <div style={{ display: "flex", gap: 12, marginBottom: 30 }}>
-        <button
-          onClick={openFilePicker}
-          style={{
-            padding: "12px 20px",
-            fontSize: 16,
-            borderRadius: 10,
-            border: "none",
-            cursor: "pointer",
-          }}
-        >
-          Alege imagini
-        </button>
-
-        <button
-          onClick={generateVideo}
-          disabled={images.length === 0 || loading}
-          style={{
-            padding: "12px 20px",
-            fontSize: 16,
-            borderRadius: 10,
-            border: "none",
-            cursor: images.length === 0 ? "not-allowed" : "pointer",
-            opacity: images.length === 0 ? 0.4 : 1,
-          }}
-        >
-          {loading ? "Se generează..." : "Generează video"}
-        </button>
-      </div>
-
-      <input
-        ref={inputRef}
-        type="file"
-        multiple
-        hidden
-        onChange={onImagesSelected}
-      />
-
-      <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
-        {images.map((src, i) => (
-          <img
-            key={i}
-            src={src}
-            style={{
-              width: 120,
-              height: 120,
-              objectFit: "cover",
-              borderRadius: 10,
-            }}
+          <PreviewPanel
+            videoUrl={videoUrl}
+            isGenerating={isGenerating}
+            format={format}
+            images={images}
           />
-        ))}
+        </div>
       </div>
-    </div>
-  );
+    </main>
+  )
 }
