@@ -1,36 +1,26 @@
 "use client";
 
-export default function PayButton() {
+export default function GenerateButton({ email }: { email: string }) {
   const handlePay = async () => {
-    try {
-      const res = await fetch("/api/stripe/checkout", {
-        method: "POST",
-      });
+    const res = await fetch("/api/stripe/checkout", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email }),
+    });
 
-      const data = await res.json();
+    const data = await res.json();
 
-      if (data.url) {
-        window.location.href = data.url;
-      } else {
-        alert("Eroare Stripe");
-      }
-    } catch {
-      alert("Eroare Stripe");
+    if (data.url) {
+      window.location.href = data.url; // ✅ SINGURUL redirect permis
     }
   };
 
   return (
     <button
       onClick={handlePay}
-      style={{
-        padding: "16px 32px",
-        fontSize: "18px",
-        borderRadius: "10px",
-        backgroundColor: "#0ea5e9",
-        color: "#fff",
-      }}
+      className="bg-white text-black px-6 py-3 rounded-full font-semibold"
     >
-      Plătește
+      Plătește & Generează
     </button>
   );
 }

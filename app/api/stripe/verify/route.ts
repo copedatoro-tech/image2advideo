@@ -1,24 +1,32 @@
-import Stripe from "stripe";
 import { NextResponse } from "next/server";
-
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
+import { stripe } from "@/lib/stripe";
 
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
-  const session_id = searchParams.get("session_id");
+  const sessionId = searchParams.get("session_id");
 
-  if (!session_id) {
-    return NextResponse.json({ paid: false });
+  if (!sessionId) {
+    return NextResponse.json(
+      { paid: false },
+      { status: 400 }
+    );
   }
 
   try {
-    const session = await stripe.checkout.sessions.retrieve(session_id);
+    const session =
+      await stripe.checkout.sessions.retrieve(
+        sessionId
+      );
 
-    return NextResponse.json({
-      paid: session.payment_status === "paid",
-    });
-  } catch (err) {
-    console.error("Stripe verify error:", err);
-    return NextResponse.json({ paid: false }, { status: 500 });
+    if (session.payment_status === "paid") {
+      return NextResponse.json({ paid: true });
+    }
+
+    return NextResponse.json({ paid: false });
+  } catch (error) {
+    return NextResponse.json(
+      { paid: false },
+      { status: 500 }
+    );
   }
 }

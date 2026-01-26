@@ -1,29 +1,26 @@
 "use client";
 
 export default function PayPage() {
-  async function goToCheckout() {
-    const res = await fetch("/api/stripe/checkout", {
+  const handlePay = async () => {
+    const res = await fetch("/api/pay", {
       method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email: "test@test.com" }),
     });
 
     const data = await res.json();
-    window.location.href = data.url;
-  }
+
+    if (data.url) {
+      window.location.href = data.url;
+    }
+  };
 
   return (
-    <main style={{ padding: 40 }}>
-      <h1>Acces restricționat</h1>
-      <p>Trebuie să faci plata pentru a continua.</p>
-      <button
-        onClick={goToCheckout}
-        style={{
-          padding: "12px 20px",
-          fontSize: 16,
-          cursor: "pointer",
-        }}
-      >
-        Plătește acum
+    <div style={{ padding: 40 }}>
+      <h1>Plată</h1>
+      <button onClick={handlePay}>
+        Plătește
       </button>
-    </main>
+    </div>
   );
 }
