@@ -1,26 +1,26 @@
-import { NextResponse } from "next/server"
-import path from "path"
-import { generateVideo } from "@/video-engine/render"
+import { NextResponse } from "next/server";
+import { generateVideo } from "@/video-engine/render";
 
-export async function POST(req: Request) {
+export async function POST() {
   try {
-    const body = await req.json()
-    const imagePath = body.imagePath
+    console.log("🚀 API generate-video called");
 
-    if (!imagePath) {
-      return NextResponse.json({ error: "No image path" }, { status: 400 })
-    }
+    // generateVideo NU primește argumente
+    const videoPath = await generateVideo();
 
-    const outputName = `video-${Date.now()}.mp4`
+    return NextResponse.json({
+      success: true,
+      videoPath,
+    });
+  } catch (error: any) {
+    console.error("❌ Video generation failed:", error);
 
-    const videoPath = await generateVideo({
-      imagePath: path.join(process.cwd(), "public", imagePath),
-      outputName,
-    })
-
-    return NextResponse.json({ videoPath })
-  } catch (err) {
-    console.error(err)
-    return NextResponse.json({ error: "Video generation failed" }, { status: 500 })
+    return NextResponse.json(
+      {
+        success: false,
+        error: error.message || "Video generation error",
+      },
+      { status: 500 }
+    );
   }
 }
