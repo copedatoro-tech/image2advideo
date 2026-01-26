@@ -1,8 +1,13 @@
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
+import Replicate from "replicate";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: "2025-09-30.clover",
+});
+
+const replicate = new Replicate({
+  auth: process.env.REPLICATE_API_TOKEN!,
 });
 
 export async function POST(req: Request) {
@@ -26,7 +31,6 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: err.message }, { status: 400 });
   }
 
-  // ✅ AICI prindem plata finalizată
   if (event.type === "checkout.session.completed") {
     const session = event.data.object as Stripe.Checkout.Session;
 
@@ -34,13 +38,23 @@ export async function POST(req: Request) {
     console.log("Session ID:", session.id);
     console.log("Customer email:", session.customer_details?.email);
 
-    // 👉 AICI, în pasul următor, vom porni generarea video
+    // 🔥 PORNIM GENERAREA VIDEO
+    const prediction = await replicate.predictions.create({
+      version: "cjwbw/image-to-video", // model standard
+      input: {
+        image: session.metadata?.imageUrl,
+        prompt: "Promotional video, cinematic, modern, smooth motion",
+        duration: 5,
+      },
+    });
+
+    console.log("🎬 VIDEO GENERATION STARTED");
+    console.log("Prediction ID:", prediction.id);
   }
 
   return NextResponse.json({ received: true });
 }
 
-// Doar pentru test în browser
 export async function GET() {
   return NextResponse.json({ webhook: "alive" });
 }
