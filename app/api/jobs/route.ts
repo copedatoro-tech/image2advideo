@@ -1,25 +1,14 @@
-import { NextResponse } from 'next/server'
+import { NextResponse } from "next/server";
 
-let JOBS: Record<string, any> = {}
-
-export async function POST() {
-  const jobId = crypto.randomUUID()
-
-  JOBS[jobId] = { status: 'processing' }
-
-  setTimeout(() => {
-    JOBS[jobId] = {
-      status: 'done',
-      videoUrl: '/videos/demo.mp4'
-    }
-  }, 3000)
-
-  return NextResponse.json({ jobId })
-}
+const JOBS: Record<string, { status: string }> = {};
 
 export async function GET(req: Request) {
-  const { searchParams } = new URL(req.url)
-  const id = searchParams.get('id')
+  const { searchParams } = new URL(req.url);
+  const id = searchParams.get("id");
 
-  return NextResponse.json(JOBS[id] || { status: 'processing' })
+  if (!id) {
+    return NextResponse.json({ status: "processing" });
+  }
+
+  return NextResponse.json(JOBS[id] ?? { status: "processing" });
 }

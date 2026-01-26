@@ -1,42 +1,35 @@
 import Stripe from "stripe";
-import { headers } from "next/headers";
-import { generateVideo } from "@/video-engine/render";
-import path from "path";
+import { NextResponse } from "next/server";
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: "2023-10-16",
-});
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
 
 export async function POST(req: Request) {
-  const body = await req.text();
-  const sig = headers().get("stripe-signature")!;
-
-  let event: Stripe.Event;
-
   try {
-    event = stripe.webhooks.constructEvent(
-      body,
-      sig,
-      process.env.STRIPE_WEBHOOK_SECRET!
-    );
+    const { email } = await req.json();
+
+    const session = await stripe.checkout.sessions.create({
+      mode: "payment",
+      payment_method_types: ["card"],
+      customer_email: email,
+      line_items: [
+        {
+          price_data: {
+            currency: "ron",
+            product_data: {
+              name: "AI Promo Video",
+            },
+            unit_amount: 1900,
+          },
+          quantity: 1,
+        },
+      ],
+      success_url: `${process.env.NEXT_PUBLIC_BASE_URL}/result?success=true`,
+      cancel_url: `${process.env.NEXT_PUBLIC_BASE_URL}/?canceled=true`,
+    });
+
+    return NextResponse.json({ url: session.url });
   } catch (err) {
-    return new Response("Webhook Error", { status: 400 });
+    console.error(err);
+    return NextResponse.json({ error: "Stripe error" }, { status: 500 });
   }
-
-  if (event.type === "checkout.session.completed") {
-    const session = event.data.object as Stripe.Checkout.Session;
-
-    const imagePath = session.metadata?.imagePath;
-
-    if (imagePath) {
-      const outputName = `video-${Date.now()}.mp4`;
-
-      await generateVideo({
-        imagePath: path.join(process.cwd(), "public", imagePath),
-        outputName,
-      });
-    }
-  }
-
-  return new Response("OK", { status: 200 });
 }
