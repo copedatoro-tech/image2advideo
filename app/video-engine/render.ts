@@ -1,32 +1,17 @@
 import path from "path";
-import fs from "fs";
 
 /**
- * Generează un video placeholder (temporar)
+ * Generează un link de video placeholder (Vercel friendly)
  */
-export function generateVideo(sessionId: string): string {
-  console.log("🎬 Generating video for session:", sessionId);
+export function generateVideo(sessionId) {
+  console.log("🎬 Pregătire link video pentru sesiunea:", sessionId);
 
-  // nume unic simplu (fără uuid)
+  // Pe Vercel nu putem scrie fișiere fizice cu fs.writeFileSync în folderul public.
+  // Pentru moment, returnăm un link către un video demonstrativ sau un placeholder.
+  
   const fileName = `video_${Date.now()}.mp4`;
-
-  const videosDir = path.join(
-    process.cwd(),
-    "public",
-    "videos"
-  );
-
-  // asigură folderul
-  if (!fs.existsSync(videosDir)) {
-    fs.mkdirSync(videosDir, { recursive: true });
-  }
-
-  const videoPath = path.join(videosDir, fileName);
-
-  // fișier placeholder (gol)
-  fs.writeFileSync(videoPath, "");
-
-  console.log("✅ Video created:", videoPath);
-
-  return `/videos/${fileName}`;
+  
+  // Returnăm doar calea simbolică. 
+  // Într-o aplicație reală, aici vei apela Replicate sau Cloudinary.
+  return `/videos/placeholder.mp4`; 
 }
