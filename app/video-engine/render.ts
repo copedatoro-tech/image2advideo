@@ -1,17 +1,10 @@
-import path from "path";
-
 /**
- * Generează un link de video placeholder (Vercel friendly)
+ * Generează un link de video placeholder
+ * Această versiune este simplificată pentru a evita erorile de build pe Vercel
  */
 export function generateVideo(sessionId) {
-  console.log("🎬 Pregătire link video pentru sesiunea:", sessionId);
-
-  // Pe Vercel nu putem scrie fișiere fizice cu fs.writeFileSync în folderul public.
-  // Pentru moment, returnăm un link către un video demonstrativ sau un placeholder.
+  console.log("🎬 Pregătire video pentru sesiunea:", sessionId);
   
-  const fileName = `video_${Date.now()}.mp4`;
-  
-  // Returnăm doar calea simbolică. 
-  // Într-o aplicație reală, aici vei apela Replicate sau Cloudinary.
-  return `/videos/placeholder.mp4`; 
+  // Returnăm un link către un video de test
+  return "/videos/placeholder.mp4";
 }

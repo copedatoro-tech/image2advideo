@@ -7,10 +7,9 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
 
 export async function POST(req: Request) {
   try {
-    // PRELUĂM PREȚUL TRIMIS DIN PAGINA PRINCIPALĂ
     const { price, duration, style } = await req.json();
 
-    // Dacă din vreo eroare prețul nu ajunge, punem 29 (baza), dar NU 19.
+    // Dacă prețul nu este trimis, folosim baza de 29, dar niciodată 19
     const finalAmount = price || 29;
 
     const session = await stripe.checkout.sessions.create({
@@ -21,9 +20,8 @@ export async function POST(req: Request) {
             currency: "ron",
             product_data: {
               name: `Video Ad: ${duration}s, Stil ${style}`,
-              description: "Producție video Image2Ad",
+              description: "Producție profesională Image2Ad",
             },
-            // Înmulțim cu 100 pentru formatul Stripe
             unit_amount: finalAmount * 100, 
           },
           quantity: 1,
