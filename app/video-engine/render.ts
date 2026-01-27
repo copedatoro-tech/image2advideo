@@ -1,7 +1,10 @@
 // video-engine/render.ts
 
-export const generateVideo = (sessionId: string): string => {
+/**
+ * Functia trebuie sa fie exportata clar cu "export" in fata
+ */
+export function generateVideo(sessionId: string): string {
   console.log("🎬 Generare video pentru sesiunea:", sessionId);
-  // Pe Vercel doar returnăm link-ul, nu scriem fișiere pe disc (fs)
+  // Returnam un link simplu pentru a nu bloca build-ul pe Vercel
   return "/videos/placeholder.mp4";
-};
+}
