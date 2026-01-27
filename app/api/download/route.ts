@@ -1,25 +1,35 @@
 import { NextResponse } from "next/server";
-import fs from "fs";
 import path from "path";
+import fs from "fs";
 
-// Definește calea fișierului video
-export async function GET(req: Request) {
-  const videoName = req.url.split("/").pop(); // Extrage numele fișierului din URL
-  const videoPath = path.join(process.cwd(), "public", "videos", videoName || "");
+export async function GET(request: Request) {
+  const { searchParams } = new URL(request.url);
+  const video = searchParams.get("video");
 
-  // Verifică dacă fișierul există
-  if (!fs.existsSync(videoPath)) {
-    return NextResponse.json({ error: "Video not found" }, { status: 404 });
+  if (!video) {
+    return new NextResponse("Missing video parameter", { status: 400 });
   }
 
-  // Citește fișierul video
-  const videoBuffer = fs.readFileSync(videoPath);
+  // video trebuie să fie doar nume de fișier, ex: demo.mp4
+  const safeVideoName = path.basename(video);
 
-  return new NextResponse(videoBuffer, {
+  const videoPath = path.join(
+    process.cwd(),
+    "public",
+    "videos",
+    safeVideoName
+  );
+
+  if (!fs.existsSync(videoPath)) {
+    return new NextResponse("Video not found", { status: 404 });
+  }
+
+  const fileBuffer = fs.readFileSync(videoPath);
+
+  return new NextResponse(fileBuffer, {
     headers: {
-      "Content-Type": "video/mp4", // Tipul fișierului
-      "Content-Disposition": `attachment; filename="${videoName}"`, // Forțează descărcarea
-      "Content-Length": videoBuffer.length.toString(), // Dimensiunea fișierului
+      "Content-Type": "video/mp4",
+      "Content-Disposition": `attachment; filename="${safeVideoName}"`,
     },
   });
 }

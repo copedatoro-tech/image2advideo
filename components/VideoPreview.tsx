@@ -10,53 +10,65 @@ export default function VideoPreview() {
       style={{
         width: "100%",
         textAlign: "center",
-        paddingBottom: "24px", // spațiu jos
+        paddingBottom: "32px",
       }}
     >
+      {/* TITLU */}
+      <h1 style={{ fontSize: "28px", fontWeight: "700", marginBottom: "24px" }}>
+        Download video
+      </h1>
+
       {/* VIDEO */}
       <video
         src="/videos/demo.mp4"
         controls
         style={{
           width: "100%",
-          maxWidth: "380px",
-          maxHeight: "480px", // puțin mai scund
-          borderRadius: "12px",
+          maxWidth: "440px", // 🔼 puțin mai mare
+          maxHeight: "520px",
+          borderRadius: "14px",
           objectFit: "cover",
         }}
       />
 
-      {/* DOWNLOAD – MUTAT MAI SUS */}
-      <div style={{ marginTop: "16px" }}>
+      {/* DOWNLOAD BUTTON */}
+      <div style={{ marginTop: "22px" }}>
         <a
           href="/videos/demo.mp4"
           download
           style={{
             display: "inline-block",
-            padding: "12px 20px",
+            padding: "14px 26px",
             backgroundColor: "#22c55e",
             color: "#000",
-            borderRadius: "8px",
+            borderRadius: "10px",
             textDecoration: "none",
-            fontWeight: "bold",
+            fontWeight: "700",
+            fontSize: "16px",
           }}
         >
-          Descarcă video
+          Download video
         </a>
       </div>
+
+      {/* EXPIRARE */}
+      <p style={{ marginTop: "12px", fontSize: "14px", opacity: 0.8 }}>
+        Link-ul este valabil timp de 72 de ore
+      </p>
 
       {/* EMAIL OPTION */}
       <div
         style={{
           marginTop: "18px",
-          maxWidth: "380px",
+          maxWidth: "440px",
           marginInline: "auto",
-          textAlign: "left",
+          textAlign: "center", // ✅ CENTRAT
         }}
       >
         <label
           style={{
             display: "flex",
+            justifyContent: "center",
             alignItems: "center",
             gap: "8px",
             cursor: "pointer",
@@ -68,7 +80,7 @@ export default function VideoPreview() {
             checked={sendEmail}
             onChange={(e) => setSendEmail(e.target.checked)}
           />
-          Trimite și pe e-mail (valabil 72 de ore)
+          Trimite video-ul și pe e-mail (opțional)
         </label>
 
         {sendEmail && (
@@ -76,11 +88,13 @@ export default function VideoPreview() {
             type="email"
             placeholder="Adresa de e-mail"
             style={{
-              marginTop: "10px",
+              marginTop: "12px",
               width: "100%",
-              padding: "10px",
-              borderRadius: "8px",
+              padding: "12px",
+              borderRadius: "10px",
               border: "1px solid #444",
+              background: "#000",
+              color: "#fff",
             }}
           />
         )}
