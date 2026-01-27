@@ -1,17 +1,14 @@
-import { spawn } from "child_process";
 import path from "path";
 
 export function startJob(sessionId: string) {
-  const videoRenderPath = path.join(process.cwd(), "video-engine", "render.js");
+  const cwd = process.cwd();
 
-  console.log("🚀 Starting video render...");
+  const videoRenderPath = path.join(
+    cwd,
+    "video-engine",
+    "render.js"
+  );
 
-  const process = spawn("node", [videoRenderPath, sessionId], {
-    cwd: process.cwd(),
-    stdio: "inherit",
-  });
-
-  process.on("close", (code) => {
-    console.log(`🎬 Video render finished with code ${code}`);
-  });
+  console.log("🎬 Starting video job for:", sessionId);
+  console.log("Using render file:", videoRenderPath);
 }

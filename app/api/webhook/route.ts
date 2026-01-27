@@ -1,16 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
-import Stripe from "stripe";
-
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: "2024-11-20",
-});
+import stripe from "@/lib/stripe";
+import type Stripe from "stripe";
 
 export async function POST(req: NextRequest) {
   const body = await req.text();
-  const sig = req.headers.get("stripe-signature");
+  const signature = req.headers.get("stripe-signature");
 
-  if (!sig) {
-    return new NextResponse("No signature", { status: 400 });
+  if (!signature) {
+    return NextResponse.json(
+      { error: "Missing Stripe signature" },
+      { status: 400 }
+    );
   }
 
   let event: Stripe.Event;
@@ -18,18 +18,23 @@ export async function POST(req: NextRequest) {
   try {
     event = stripe.webhooks.constructEvent(
       body,
-      sig,
+      signature,
       process.env.STRIPE_WEBHOOK_SECRET!
     );
-  } catch (err: any) {
-    return new NextResponse(`Webhook Error: ${err.message}`, { status: 400 });
+  } catch (err) {
+    console.error("Webhook error:", err);
+    return NextResponse.json(
+      { error: "Webhook signature verification failed" },
+      { status: 400 }
+    );
   }
 
   if (event.type === "checkout.session.completed") {
     const session = event.data.object as Stripe.Checkout.Session;
 
-    console.log("✅ Plata confirmată:", session.id);
-    // aici vei lega generarea video
+    console.log("✅ Payment completed:", session.id);
+
+    // 🔜 aici legăm AI video job
   }
 
   return NextResponse.json({ received: true });
