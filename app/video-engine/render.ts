@@ -1,10 +1,7 @@
-/**
- * Generează un link de video placeholder
- * Această versiune este simplificată pentru a evita erorile de build pe Vercel
- */
-export function generateVideo(sessionId) {
-  console.log("🎬 Pregătire video pentru sesiunea:", sessionId);
-  
-  // Returnăm un link către un video de test
+// video-engine/render.ts
+
+export const generateVideo = (sessionId: string): string => {
+  console.log("🎬 Generare video pentru sesiunea:", sessionId);
+  // Pe Vercel doar returnăm link-ul, nu scriem fișiere pe disc (fs)
   return "/videos/placeholder.mp4";
-}
+};
