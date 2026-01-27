@@ -1,14 +1,8 @@
 import path from "path";
 
-export function startJob(sessionId: string) {
-  const cwd = process.cwd();
+// Folosim referința către fișierul .ts sau pur și simplu numele fără extensie
+export const videoRenderPath = path.join(process.cwd(), "video-engine", "render.ts");
 
-  const videoRenderPath = path.join(
-    cwd,
-    "video-engine",
-    "render.js"
-  );
-
-  console.log("🎬 Starting video job for:", sessionId);
+export function logRenderPath() {
   console.log("Using render file:", videoRenderPath);
 }
