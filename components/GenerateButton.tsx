@@ -1,26 +1,55 @@
 "use client";
 
-export default function GenerateButton({ email }: { email: string }) {
-  const handlePay = async () => {
-    const res = await fetch("/api/stripe/checkout", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email }),
-    });
+import { useState } from "react";
+import { useRouter } from "next/navigation";
 
-    const data = await res.json();
+export default function GenerateButton({
+  imageUrl,
+  useAI = true,
+}: {
+  imageUrl: string;
+  useAI?: boolean;
+}) {
+  const [loading, setLoading] = useState(false);
+  const router = useRouter();
 
-    if (data.url) {
-      window.location.href = data.url; // ✅ SINGURUL redirect permis
+  const handleGenerate = async () => {
+    try {
+      setLoading(true);
+
+      const res = await fetch("/api/generate-video", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          imageUrl,
+          useAI,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        alert(data.error || "Eroare la generare video");
+        setLoading(false);
+        return;
+      }
+
+      router.push(`/result?video=${encodeURIComponent(data.videoUrl)}`);
+    } catch (err) {
+      alert("Eroare neașteptată");
+      setLoading(false);
     }
   };
 
   return (
     <button
-      onClick={handlePay}
-      className="bg-white text-black px-6 py-3 rounded-full font-semibold"
+      onClick={handleGenerate}
+      disabled={loading}
+      className="w-full rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 py-4 text-lg font-semibold text-white hover:opacity-90 disabled:opacity-50"
     >
-      Plătește & Generează
+      {loading ? "Se generează video..." : "Creează video"}
     </button>
   );
 }

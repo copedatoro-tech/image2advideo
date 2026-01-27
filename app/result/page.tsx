@@ -1,11 +1,32 @@
 "use client";
 
-import { useSearchParams } from "next/navigation";
-import ResultClient from "./ResultClient";
+import VideoPreview from "@/components/VideoPreview";
 
 export default function ResultPage() {
-  const searchParams = useSearchParams();
-  const sessionId = searchParams.get("session_id");
+  return (
+    <main
+      style={{
+        minHeight: "100vh",
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
+        padding: "24px",
+      }}
+    >
+      <div style={{ width: "100%", maxWidth: "420px" }}>
+        <h1
+          style={{
+            textAlign: "center",
+            fontSize: "22px",
+            fontWeight: "bold",
+            marginBottom: "16px",
+          }}
+        >
+          Video-ul tău este gata 🎉
+        </h1>
 
-  return <ResultClient sessionId={sessionId} />;
+        <VideoPreview />
+      </div>
+    </main>
+  );
 }

@@ -1,33 +1,14 @@
-const { exec } = require("child_process")
-const path = require("path")
-const fs = require("fs")
+const fs = require('fs');
+const path = require('path');
+const { v4: uuidv4 } = require('uuid');
 
-const inputDir = path.join(__dirname, "input")
-const outputPublic = path.join(__dirname, "..", "public", "videos")
+const generateVideo = () => {
+  const uniqueFileName = `video_${uuidv4()}.mp4`; // Nume unic video
+  const videoPath = path.join(__dirname, 'public', 'videos', uniqueFileName);
 
-if (!fs.existsSync(outputPublic)) {
-  fs.mkdirSync(outputPublic, { recursive: true })
-}
+  // Codul pentru generarea video-ului
+  // Scrierea fișierului în directorul videos
+  fs.writeFileSync(videoPath, videoBuffer);
 
-const outputFile = path.join(outputPublic, "result.mp4")
-
-function generateVideo() {
-  return new Promise((resolve, reject) => {
-    const cmd = `
-ffmpeg -y -framerate 1 -i "${inputDir}/%d.jpg" \
--c:v libx264 -r 30 -pix_fmt yuv420p "${outputFile}"
-`
-
-    exec(cmd, (err) => {
-      if (err) {
-        console.error("FFMPEG ERROR:", err)
-        reject(err)
-        return
-      }
-      console.log("VIDEO GENERAT:", outputFile)
-      resolve(outputFile)
-    })
-  })
-}
-
-module.exports = { generateVideo }
+  return uniqueFileName; // Returnează numele video-ului
+};

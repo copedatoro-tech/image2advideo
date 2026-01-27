@@ -1,45 +1,60 @@
-import { NextRequest, NextResponse } from "next/server";
-import path from "path";
+import { NextResponse } from "next/server";
+import Replicate from "replicate";
+import Stripe from "stripe";
 
-export async function POST(req: NextRequest) {
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
+  apiVersion: "2023-10-16",
+});
+
+const replicate = new Replicate({
+  auth: process.env.REPLICATE_API_TOKEN!,
+});
+
+export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const { imagePath } = body;
+    const { imageUrl, sessionId } = body;
 
-    if (!imagePath) {
+    if (!imageUrl || !sessionId) {
       return NextResponse.json(
-        { success: false, error: "imagePath missing" },
+        { error: "Date lipsă" },
         { status: 400 }
       );
     }
 
-    const outputName = `video-${Date.now()}.mp4`;
+    // 1️⃣ Verificăm plata Stripe
+    const session = await stripe.checkout.sessions.retrieve(sessionId);
 
-    const res = await fetch("http://localhost:3000/api/render", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        imagePath: path.join(process.cwd(), "public", imagePath),
-        outputName,
-      }),
-    });
-
-    const data = await res.json();
-
-    if (!data.success) {
-      throw new Error("Render failed");
+    if (session.payment_status !== "paid") {
+      return NextResponse.json(
+        { error: "Plata nu este confirmată" },
+        { status: 402 }
+      );
     }
 
+    // 2️⃣ Generare video AI (Replicate – pay per use)
+    const output = await replicate.run(
+      "stability-ai/stable-video-diffusion",
+      {
+        input: {
+          image: imageUrl,
+          motion_bucket_id: 127,
+          fps: 6,
+          duration: 3,
+        },
+      }
+    );
+
+    // 3️⃣ Returnăm video
     return NextResponse.json({
       success: true,
-      videoPath: data.videoPath,
+      videoUrl: Array.isArray(output) ? output[0] : output,
     });
-  } catch (err) {
-    console.error(err);
+
+  } catch (error: any) {
+    console.error("AI VIDEO ERROR:", error);
     return NextResponse.json(
-      { success: false, error: "Generate video failed" },
+      { error: "Eroare la generarea video-ului" },
       { status: 500 }
     );
   }

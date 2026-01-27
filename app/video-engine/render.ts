@@ -1,34 +1,30 @@
-import fs from "fs";
-import path from "path";
+const fs = require("fs");
+const path = require("path");
+const { v4: uuidv4 } = require("uuid");
 
-type GenerateVideoParams = {
-  imagePath: string;
-  outputName: string;
+const generateVideo = (sessionId) => {
+  // Creează un nume unic pentru video
+  const uniqueFileName = `video_${uuidv4()}.mp4`; 
+  const videoPath = path.join(process.cwd(), "public", "videos", uniqueFileName);
+
+  // Logica de procesare a video-ului (temporar, simulăm cu un timeout)
+  console.log("🚀 Generating video for session:", sessionId);
+
+  // Simulăm generarea video-ului cu setTimeout
+  setTimeout(() => {
+    // Salvează fișierul generat (temporar)
+    fs.writeFileSync(videoPath, "Simulăm generarea video-ului");
+
+    console.log("✅ Video generated:", videoPath);
+  }, 5000); // 5 secunde de procesare pentru simulare
+
+  return uniqueFileName; // Numele fișierului generat
 };
 
-export async function generateVideo({
-  imagePath,
-  outputName,
-}: GenerateVideoParams): Promise<string> {
-  console.log("🎬 Video generation started...");
-  console.log("🖼 Image path:", imagePath);
+const sessionId = process.argv[2]; // Folosim sessionId trimis ca argument
 
-  const outputDir = path.join(process.cwd(), "video-engine/output");
-
-  if (!fs.existsSync(outputDir)) {
-    fs.mkdirSync(outputDir, { recursive: true });
-  }
-
-  const mockVideoPath = path.join(outputDir, "mock.mp4");
-  const finalVideoPath = path.join(outputDir, `${outputName}.mp4`);
-
-  if (!fs.existsSync(mockVideoPath)) {
-    throw new Error("❌ mock.mp4 not found in video-engine/output/");
-  }
-
-  fs.copyFileSync(mockVideoPath, finalVideoPath);
-
-  console.log("✅ Video generated successfully:", finalVideoPath);
-
-  return finalVideoPath;
+if (sessionId) {
+  generateVideo(sessionId);
+} else {
+  console.log("❌ No session ID provided.");
 }
