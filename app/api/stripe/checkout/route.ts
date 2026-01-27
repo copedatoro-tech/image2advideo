@@ -2,16 +2,15 @@ import { NextResponse } from "next/server";
 import Stripe from "stripe";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: "2023-10-16", // sau versiunea ta curentă
+  apiVersion: "2023-10-16",
 });
 
 export async function POST(req: Request) {
   try {
     const { price, duration, style } = await req.json();
 
-    // IMPORTANT: Stripe primește prețul în bani (subdiviziuni), deci înmulțim cu 100
-    // Dacă prețul calculat în interfață este 129 RON, aici va deveni 12900 unități
-    const unitAmount = price * 100;
+    // Verificare de siguranță: dacă prețul lipsește, punem baza
+    const finalPrice = price || 29;
 
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ["card"],
@@ -20,10 +19,11 @@ export async function POST(req: Request) {
           price_data: {
             currency: "ron",
             product_data: {
-              name: `Video Ad - ${duration}s, Stil ${style}`,
+              name: `Video Ad: ${duration}s, Stil ${style}`,
               description: "Producție video profesională Image2Ad",
             },
-            unit_amount: unitAmount, // Aici punem prețul total trimis din interfață
+            // Înmulțim cu 100 pentru că Stripe vrea bani (subdiviziuni)
+            unit_amount: finalPrice * 100, 
           },
           quantity: 1,
         },
@@ -35,7 +35,7 @@ export async function POST(req: Request) {
 
     return NextResponse.json({ url: session.url });
   } catch (err: any) {
-    console.error("Eroare Stripe:", err);
+    console.error("Stripe Error:", err);
     return NextResponse.json({ error: err.message }, { status: 500 });
   }
 }
