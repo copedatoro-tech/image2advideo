@@ -1,5 +1,7 @@
 "use client";
 
+export const dynamic = "force-dynamic";
+
 import { useSearchParams } from "next/navigation";
 import { useState } from "react";
 
@@ -12,6 +14,7 @@ export default function SuccessPage() {
   const handleSendEmail = async () => {
     const res = await fetch("/api/send-email", {
       method: "POST",
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ sessionId }),
     });
 
@@ -25,9 +28,8 @@ export default function SuccessPage() {
       <h1>Mulțumim pentru achiziție!</h1>
       <p>Video-ul tău este gata sau va fi gata în câteva momente.</p>
 
-      <h3>Video-ul tău:</h3>
+      <h3 style={{ marginTop: 30 }}>Video-ul tău:</h3>
 
-      {/* Aici vei pune URL-ul real al video-ului */}
       <video
         src="https://example.com/fake-video.mp4"
         controls
