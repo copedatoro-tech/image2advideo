@@ -1,42 +1,36 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 
 export default function GenerateButton({
-  imageUrl,
-  useAI = true,
+  price = 490,
 }: {
-  imageUrl: string;
-  useAI?: boolean;
+  price?: number;
 }) {
   const [loading, setLoading] = useState(false);
-  const router = useRouter();
 
-  const handleGenerate = async () => {
+  const handleCheckout = async () => {
     try {
       setLoading(true);
 
-      const res = await fetch("/api/generate-video", {
+      const res = await fetch("/api/stripe/checkout", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          imageUrl,
-          useAI,
-        }),
+        body: JSON.stringify({ price }),
       });
 
       const data = await res.json();
 
-      if (!res.ok) {
-        alert(data.error || "Eroare la generare video");
+      if (!res.ok || !data.url) {
+        alert(data.error || "Eroare la inițierea plății");
         setLoading(false);
         return;
       }
 
-      router.push(`/result?video=${encodeURIComponent(data.videoUrl)}`);
+      // 🔥 Redirecționare către Stripe Checkout
+      window.location.href = data.url;
     } catch (err) {
       alert("Eroare neașteptată");
       setLoading(false);
@@ -45,11 +39,11 @@ export default function GenerateButton({
 
   return (
     <button
-      onClick={handleGenerate}
+      onClick={handleCheckout}
       disabled={loading}
       className="w-full rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 py-4 text-lg font-semibold text-white hover:opacity-90 disabled:opacity-50"
     >
-      {loading ? "Se generează video..." : "Creează video"}
+      {loading ? "Se pregătește plata..." : "Creează video"}
     </button>
   );
 }
