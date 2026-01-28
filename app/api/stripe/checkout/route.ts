@@ -1,21 +1,19 @@
-import Stripe from "stripe";
 import { NextResponse } from "next/server";
-
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {
-  apiVersion: "2023-10-16",
-});
+import Stripe from "stripe";
 
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const { price } = body;
 
-    if (!price || typeof price !== "number") {
-      return NextResponse.json(
-        { error: "Preț invalid" },
-        { status: 400 }
-      );
-    }
+    const {
+      price,
+      duration,
+      format,
+      style,
+      aiEnabled,
+    } = body;
+
+    const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string);
 
     const session = await stripe.checkout.sessions.create({
       mode: "payment",
@@ -25,23 +23,21 @@ export async function POST(req: Request) {
           price_data: {
             currency: "ron",
             product_data: {
-              name: "Image2AdVideo – Generare video",
+              name: "Image2AdVideo",
+              description: `Video ${duration}s · ${format} · ${style}${aiEnabled ? " · AI" : ""}`,
             },
             unit_amount: price * 100, // RON → bani
           },
           quantity: 1,
         },
       ],
-      success_url: `${process.env.NEXT_PUBLIC_SITE_URL}/result?success=true`,
-      cancel_url: `${process.env.NEXT_PUBLIC_SITE_URL}?canceled=true`,
+      success_url: `${process.env.NEXT_PUBLIC_BASE_URL}/result?success=true`,
+      cancel_url: `${process.env.NEXT_PUBLIC_BASE_URL}/?canceled=true`,
     });
 
     return NextResponse.json({ url: session.url });
   } catch (error) {
     console.error("Stripe checkout error:", error);
-    return NextResponse.json(
-      { error: "Stripe checkout failed" },
-      { status: 500 }
-    );
+    return new NextResponse("Stripe error", { status: 500 });
   }
 }
