@@ -1,1 +1,0 @@
-file 'D:\image2advideo\video-engine\input\img_0.jpg'
