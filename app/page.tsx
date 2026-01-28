@@ -54,7 +54,7 @@ export default function Home() {
   };
 
   // FUNCȚIA REPARATĂ PENTRU PLATĂ
-  async function handleCreateVideo() {
+async function handleCreateVideo() {
   if (images.length === 0) {
     alert("Te rugăm să adaugi imagini");
     return;
@@ -85,6 +85,7 @@ export default function Home() {
 
     // 🔁 Redirecționare către Stripe
     window.location.href = data.url;
+
   } catch (error) {
     console.error("Stripe checkout error:", error);
     alert("A apărut o problemă. Te rugăm să încerci din nou.");
@@ -92,6 +93,7 @@ export default function Home() {
     setLoading(false);
   }
 }
+
 
   return (
     <div style={{ 
