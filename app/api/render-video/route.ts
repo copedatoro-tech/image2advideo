@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { generateVideo } from "@/app/lib/video-engine/generateVideo";
+import { generateVideo } from "@/lib/video-engine/generateVideo";
 
 export async function POST() {
   try {
