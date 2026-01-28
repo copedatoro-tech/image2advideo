@@ -1,5 +1,3 @@
-// app/video-engine/render.js
-
 export async function generateVideo(data) {
   return {
     success: true,
