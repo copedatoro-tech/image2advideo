@@ -1,16 +1,16 @@
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
 
+// 🔐 Luăm cheia Stripe din environment
 const stripeSecret = process.env.STRIPE_SECRET_KEY;
-const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://image2advideo.vercel.app";
 
+// Dacă nu există cheia → oprim tot
 if (!stripeSecret) {
-  throw new Error("Stripe secret key is missing");
+  throw new Error("❌ STRIPE_SECRET_KEY lipsă în Vercel");
 }
 
-const stripe = new Stripe(stripeSecret, {
-  apiVersion: "2023-10-16",
-});
+// Inițializăm Stripe fără apiVersion (Vercel dă eroare dacă o specificăm)
+const stripe = new Stripe(stripeSecret);
 
 export async function POST(req: Request) {
   try {
@@ -19,10 +19,20 @@ export async function POST(req: Request) {
 
     console.log("🔍 Preț primit:", price);
 
+    // Validare preț
     if (!price || typeof price !== "number") {
-      return NextResponse.json({ error: "Preț invalid" }, { status: 400 });
+      return NextResponse.json(
+        { error: "Preț invalid" },
+        { status: 400 }
+      );
     }
 
+    // URL-ul aplicației tale live
+    const baseUrl =
+      process.env.NEXT_PUBLIC_BASE_URL ||
+      "https://image2advideo.vercel.app";
+
+    // Creăm sesiunea Stripe
     const session = await stripe.checkout.sessions.create({
       mode: "payment",
       payment_method_types: ["card"],
@@ -33,7 +43,7 @@ export async function POST(req: Request) {
             product_data: {
               name: "Image2AdVideo – Video promo",
             },
-            unit_amount: price * 100,
+            unit_amount: price * 100, // RON → bani
           },
           quantity: 1,
         },
@@ -46,7 +56,10 @@ export async function POST(req: Request) {
 
     return NextResponse.json({ url: session.url });
   } catch (err: any) {
-    console.error("❌ Stripe checkout error:", err.message);
-    return NextResponse.json({ error: "Eroare Stripe" }, { status: 500 });
+    console.error("❌ Stripe checkout error:", err);
+    return NextResponse.json(
+      { error: "Eroare Stripe" },
+      { status: 500 }
+    );
   }
 }
