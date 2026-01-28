@@ -1,7 +1,6 @@
-// lib/video-engine/render.js
+// app/video-engine/render.ts
 
-export async function generateVideo(data) {
-  // simulare generare video (safe pentru build & deploy)
+export async function generateVideo(data: any) {
   return {
     success: true,
     videoUrl: "https://example.com/fake-video.mp4",
