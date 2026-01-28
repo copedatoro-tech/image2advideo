@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
-import Stripe from "stripe";
+
+// IMPORTANT: import Stripe FĂRĂ tipuri
+const Stripe = require("stripe");
 
 export async function POST(req: Request) {
   try {
@@ -13,7 +15,7 @@ export async function POST(req: Request) {
       aiEnabled,
     } = body;
 
-    const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string);
+    const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
     const session = await stripe.checkout.sessions.create({
       mode: "payment",
@@ -26,7 +28,7 @@ export async function POST(req: Request) {
               name: "Image2AdVideo",
               description: `Video ${duration}s · ${format} · ${style}${aiEnabled ? " · AI" : ""}`,
             },
-            unit_amount: price * 100, // RON → bani
+            unit_amount: price * 100,
           },
           quantity: 1,
         },
