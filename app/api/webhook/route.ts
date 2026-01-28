@@ -37,23 +37,12 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Job folder missing" }, { status: 400 });
     }
 
-    const { runRender } = require("../../../lib/runRender");
-
-    const code = await runRender(jobDir);
-
-    const statusPath = path.join(jobDir, "status.json");
-
-    if (code === 0) {
-      fs.writeFileSync(
-        statusPath,
-        JSON.stringify({ status: "done", video: "output.mp4" })
-      );
-    } else {
-      fs.writeFileSync(
-        statusPath,
-        JSON.stringify({ status: "error" })
-      );
-    }
+    // 🔥 Trimitem cererea către serverless function-ul care rulează ffmpeg
+    await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/render`, {
+      method: "POST",
+      body: JSON.stringify({ jobDir }),
+      headers: { "Content-Type": "application/json" },
+    });
 
     return NextResponse.json({ received: true });
   }
