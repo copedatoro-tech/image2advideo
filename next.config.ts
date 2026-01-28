@@ -1,7 +1,20 @@
-import type { NextConfig } from "next";
+import type { NextConfig } from 'next';
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  experimental: {
+    serverActions: true,
+  },
+  output: 'standalone',
+  // 👇 redirect explicit pentru /success
+  async redirects() {
+    return [
+      {
+        source: '/success',
+        destination: '/(client)/success',
+        permanent: false,
+      },
+    ];
+  },
 };
 
 export default nextConfig;
