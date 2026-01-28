@@ -34,7 +34,6 @@ async function main() {
   console.log("📸 Imagini găsite:", images.length);
   console.log("⚙️ Setări:", config);
 
-  // 🔥 Creăm un fișier temporar cu lista imaginilor pentru ffmpeg
   const listFile = path.join(jobDir, "images.txt");
   const listContent = images.map((img) => `file '${img}'\nduration 1`).join("\n");
   fs.writeFileSync(listFile, listContent);
@@ -43,7 +42,6 @@ async function main() {
 
   console.log("🎥 Generăm video-ul...");
 
-  // 🔥 Comandă ffmpeg simplă (slideshow)
   const ffmpeg = spawn("ffmpeg", [
     "-y",
     "-f",
