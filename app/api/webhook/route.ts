@@ -37,8 +37,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Job folder missing" }, { status: 400 });
     }
 
-    // 🔥 Importăm dinamic funcția care rulează render.js
-    const { runRender } = require("../../../../lib/runRender");
+    const { runRender } = require("../../../lib/runRender");
 
     const code = await runRender(jobDir);
 
