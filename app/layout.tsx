@@ -1,6 +1,9 @@
 import "./globals.css";
 import type { ReactNode } from "react";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 export const metadata = {
   title: "Image2AdVideo AI",
   description: "Generate premium video ads from images",
