@@ -30,9 +30,9 @@ export default function Home() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const maxImages = 12;
 
-  // RECALCULARE PREȚ CONFORM INSTRUCȚIUNILOR TALE
+  // 🔥 PREȚ MINIM MODIFICAT LA 2 RON
   const totalPrice = useMemo(() => {
-    let total = 29; // Prețul de bază inițial
+    let total = 2; // Prețul de bază (în loc de 29)
     if (duration === 30) total += 20;
     if (duration === 60) total += 50;
     if (style === "Cinematic") total += 20;
@@ -110,7 +110,6 @@ export default function Home() {
         border: "1px solid rgba(79,209,197,0.2)",
       }}>
         
-        {/* TITLU MAI MARE ȘI PE MIJLOC */}
         <h1 style={{
           fontSize: "56px",
           fontWeight: "900",
@@ -124,7 +123,6 @@ export default function Home() {
 
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1.4fr", gap: "40px", alignItems: "start" }}>
           
-          {/* COLOANA STÂNGA: SETĂRI */}
           <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
             <h2 style={{ fontSize: "12px", color: "#4fd1c5", letterSpacing: "2px", fontWeight: "bold" }}>{t.videoSettings}</h2>
             
@@ -192,7 +190,6 @@ export default function Home() {
             </div>
           </div>
 
-          {/* COLOANA DREAPTĂ: PREVIEW IMAGINI (CÂTE 4 PE RÂND) */}
           <div style={{ 
             background: "rgba(255,255,255,0.02)", 
             padding: "20px", 
