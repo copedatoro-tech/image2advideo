@@ -3,7 +3,6 @@ import Stripe from "stripe";
 import fs from "fs";
 import path from "path";
 
-// 🔥 IMPORTANT: dezactivăm edge runtime
 export const runtime = "nodejs";
 
 export async function POST(req: Request) {
@@ -28,36 +27,34 @@ export async function POST(req: Request) {
     const session = event.data.object as Stripe.Checkout.Session;
     const jobId = session.metadata?.jobId;
 
-    if (!jobId) return NextResponse.json({ error: "Missing jobId" }, { status: 400 });
+    if (!jobId) {
+      return NextResponse.json({ error: "Missing jobId" }, { status: 400 });
+    }
 
     const jobDir = path.join("/tmp/jobs", jobId);
-    if (!fs.existsSync(jobDir)) return NextResponse.json({ error: "Job folder missing" }, { status: 400 });
 
-    // 🔥 Importăm spawn DOAR aici
-    const { spawn } = require("child_process");
+    if (!fs.existsSync(jobDir)) {
+      return NextResponse.json({ error: "Job folder missing" }, { status: 400 });
+    }
 
-    const renderProcess = spawn("node", [
-      path.join(process.cwd(), "video-engine/render.js"),
-      jobDir,
-    ]);
+    // 🔥 Importăm dinamic funcția care rulează render.js
+    const { runRender } = require("../../../../lib/runRender");
 
-    renderProcess.stdout.on("data", (data: Buffer) => {
-      console.log("🎬 Render:", data.toString());
-    });
+    const code = await runRender(jobDir);
 
-    renderProcess.stderr.on("data", (data: Buffer) => {
-      console.error("❌ Render error:", data.toString());
-    });
+    const statusPath = path.join(jobDir, "status.json");
 
-    renderProcess.on("close", (code: number) => {
-      const statusPath = path.join(jobDir, "status.json");
-
-      if (code === 0) {
-        fs.writeFileSync(statusPath, JSON.stringify({ status: "done", video: "output.mp4" }));
-      } else {
-        fs.writeFileSync(statusPath, JSON.stringify({ status: "error" }));
-      }
-    });
+    if (code === 0) {
+      fs.writeFileSync(
+        statusPath,
+        JSON.stringify({ status: "done", video: "output.mp4" })
+      );
+    } else {
+      fs.writeFileSync(
+        statusPath,
+        JSON.stringify({ status: "error" })
+      );
+    }
 
     return NextResponse.json({ received: true });
   }
