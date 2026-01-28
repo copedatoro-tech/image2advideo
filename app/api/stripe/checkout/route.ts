@@ -1,15 +1,15 @@
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
 
-// 🔐 Luăm cheia Stripe din environment
+// 🔐 Cheia Stripe din environment
 const stripeSecret = process.env.STRIPE_SECRET_KEY;
 
-// Dacă nu există cheia → oprim tot
+// Verificare cheie Stripe
 if (!stripeSecret) {
   throw new Error("❌ STRIPE_SECRET_KEY lipsă în Vercel");
 }
 
-// Inițializăm Stripe fără apiVersion (Vercel dă eroare dacă o specificăm)
+// Inițializare Stripe fără apiVersion (evităm eroarea de compilare)
 const stripe = new Stripe(stripeSecret);
 
 export async function POST(req: Request) {
@@ -32,7 +32,7 @@ export async function POST(req: Request) {
       process.env.NEXT_PUBLIC_BASE_URL ||
       "https://image2advideo.vercel.app";
 
-    // Creăm sesiunea Stripe
+    // Creare sesiune Stripe
     const session = await stripe.checkout.sessions.create({
       mode: "payment",
       payment_method_types: ["card"],
@@ -43,7 +43,7 @@ export async function POST(req: Request) {
             product_data: {
               name: "Image2AdVideo – Video promo",
             },
-            unit_amount: price * 100, // RON → bani
+            unit_amount: price * 100,
           },
           quantity: 1,
         },
@@ -56,7 +56,7 @@ export async function POST(req: Request) {
 
     return NextResponse.json({ url: session.url });
   } catch (err: any) {
-    console.error("❌ Stripe checkout error:", err);
+    console.error("❌ Stripe checkout error:", err.message);
     return NextResponse.json(
       { error: "Eroare Stripe" },
       { status: 500 }
