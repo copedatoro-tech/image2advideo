@@ -1,14 +1,12 @@
 import { NextResponse } from "next/server";
-import { generateVideo } from "@/video-engine/render";
+import { generateVideo } from "@/app/lib/video-engine/generateVideo";
 
-export async function POST(req: Request) {
+export async function POST() {
   try {
-    const { sessionId } = await req.json();
-    const videoUrl = generateVideo(sessionId || "default");
-    
-    return NextResponse.json({ success: true, videoUrl });
-  } catch (err: any) {
-    console.error("Render API Error:", err);
-    return NextResponse.json({ success: false, error: "Eroare interna render" }, { status: 500 });
+    const result = await generateVideo();
+    return NextResponse.json(result);
+  } catch (error) {
+    console.error("Render video error:", error);
+    return new NextResponse("Render error", { status: 500 });
   }
 }

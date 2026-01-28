@@ -1,24 +1,30 @@
+import Stripe from "stripe";
 import { NextResponse } from "next/server";
-import stripe from "@/lib/stripe";
 
-export async function GET(req: Request) {
-  const { searchParams } = new URL(req.url);
-  const sessionId = searchParams.get("session_id");
+export async function POST(req: Request) {
+  const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
+
+  const { sessionId } = await req.json();
 
   if (!sessionId) {
-    return NextResponse.json({ paid: false }, { status: 400 });
+    return NextResponse.json(
+      { error: "Missing sessionId" },
+      { status: 400 }
+    );
   }
 
   try {
     const session = await stripe.checkout.sessions.retrieve(sessionId);
 
-    if (session.payment_status === "paid") {
-      return NextResponse.json({ paid: true });
-    }
-
-    return NextResponse.json({ paid: false });
-  } catch (error) {
-    console.error("Verify payment error:", error);
-    return NextResponse.json({ paid: false }, { status: 500 });
+    return NextResponse.json({
+      paid: session.payment_status === "paid",
+      status: session.status,
+    });
+  } catch (err) {
+    console.error(err);
+    return NextResponse.json(
+      { error: "Stripe error" },
+      { status: 500 }
+    );
   }
 }

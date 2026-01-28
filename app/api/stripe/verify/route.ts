@@ -1,69 +1,30 @@
 import { NextResponse } from "next/server";
-import stripe from "@/lib/stripe";
-import fs from "fs";
-import path from "path";
+import Stripe from "stripe";
 
-export async function GET(req: Request) {
-  const { searchParams } = new URL(req.url);
-  const sessionId = searchParams.get("session_id");
+export async function POST(req: Request) {
+  const secretKey = process.env.STRIPE_SECRET_KEY;
 
-  if (!sessionId) {
-    return NextResponse.json(
-      { error: "Missing session_id" },
-      { status: 400 }
-    );
+  if (!secretKey) {
+    console.error("STRIPE_SECRET_KEY missing");
+    return new NextResponse("Stripe not configured", { status: 500 });
   }
 
+  const stripe = new Stripe(secretKey);
+
   try {
-    // 🔐 Verificăm plata
+    const { sessionId } = await req.json();
+
+    if (!sessionId) {
+      return new NextResponse("Missing sessionId", { status: 400 });
+    }
+
     const session = await stripe.checkout.sessions.retrieve(sessionId);
 
-    if (session.payment_status !== "paid") {
-      return NextResponse.json(
-        { error: "Payment not completed" },
-        { status: 402 }
-      );
-    }
-
-    /**
-     * 🎯 LOGICĂ SIMPLĂ PENTRU MVP
-     * Luăm CEL MAI RECENT video generat
-     * (următorul pas va fi mapare per sesiune)
-     */
-
-    const videosDir = path.join(process.cwd(), "public", "videos");
-
-    if (!fs.existsSync(videosDir)) {
-      return NextResponse.json(
-        { error: "No videos found" },
-        { status: 404 }
-      );
-    }
-
-    const files = fs
-      .readdirSync(videosDir)
-      .filter((f) => f.endsWith(".mp4"));
-
-    if (files.length === 0) {
-      return NextResponse.json(
-        { error: "No video available yet" },
-        { status: 404 }
-      );
-    }
-
-    // 🔽 Luăm ultimul video creat
-    const latestVideo = files.sort().reverse()[0];
-
     return NextResponse.json({
-      paid: true,
-      videoUrl: `/videos/${latestVideo}`,
-      expiresInHours: 72,
+      paid: session.payment_status === "paid",
     });
   } catch (err) {
     console.error("Stripe verify error:", err);
-    return NextResponse.json(
-      { error: "Stripe verification failed" },
-      { status: 500 }
-    );
+    return new NextResponse("Stripe error", { status: 500 });
   }
 }
