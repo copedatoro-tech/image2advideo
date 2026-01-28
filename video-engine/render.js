@@ -1,6 +1,6 @@
-// app/video-engine/render.ts
+// app/video-engine/render.js
 
-export async function generateVideo(data: any) {
+export async function generateVideo(data) {
   return {
     success: true,
     videoUrl: "https://example.com/fake-video.mp4",
