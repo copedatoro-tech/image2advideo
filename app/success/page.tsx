@@ -1,57 +1,62 @@
 "use client";
 
-import { useSearchParams } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 export default function SuccessPage() {
-  const searchParams = useSearchParams();
-  const sessionId = searchParams.get("session_id");
+  const [status, setStatus] = useState<"loading" | "done" | "error">("loading");
+  const [videoUrl, setVideoUrl] = useState<string | null>(null);
 
-  const [emailSent, setEmailSent] = useState(false);
+  useEffect(() => {
+    const sessionId = new URLSearchParams(window.location.search).get("session_id");
 
-  const handleSendEmail = async () => {
-    const res = await fetch("/api/send-email", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ sessionId }),
-    });
+    if (!sessionId) return;
 
-    if (res.ok) {
-      setEmailSent(true);
-    }
-  };
+    const checkStatus = async () => {
+      try {
+        const res = await fetch(`/api/stripe/session?session_id=${sessionId}`);
+        const data = await res.json();
+
+        const jobId = data?.metadata?.jobId;
+        if (!jobId) return setStatus("error");
+
+        const statusRes = await fetch(`/api/job/status?jobId=${jobId}`);
+        const statusData = await statusRes.json();
+
+        if (statusData.status === "done") {
+          setVideoUrl(`/api/job/video?jobId=${jobId}`);
+          setStatus("done");
+        } else if (statusData.status === "error") {
+          setStatus("error");
+        } else {
+          setTimeout(checkStatus, 3000);
+        }
+      } catch {
+        setStatus("error");
+      }
+    };
+
+    checkStatus();
+  }, []);
 
   return (
-    <div style={{ maxWidth: 600, margin: "40px auto", textAlign: "center" }}>
-      <h1>Mulțumim pentru achiziție!</h1>
-      <p>Video-ul tău este gata sau va fi gata în câteva momente.</p>
-
-      <h3 style={{ marginTop: 30 }}>Video-ul tău:</h3>
-
-      <video
-        src="https://example.com/fake-video.mp4"
-        controls
-        style={{ width: "100%", borderRadius: 8, marginTop: 20 }}
-      />
-
-      <div style={{ marginTop: 40 }}>
-        {!emailSent ? (
-          <button
-            onClick={handleSendEmail}
-            style={{
-              padding: "12px 20px",
-              background: "#000",
-              color: "#fff",
-              borderRadius: 6,
-              cursor: "pointer",
-            }}
-          >
-            Trimite-mi video-ul pe email
-          </button>
-        ) : (
-          <p>Email trimis cu succes!</p>
-        )}
-      </div>
+    <div style={{
+      minHeight: "100vh",
+      background: "#020617",
+      color: "#fff",
+      display: "flex",
+      justifyContent: "center",
+      alignItems: "center",
+      fontFamily: "Inter, sans-serif",
+      padding: "40px",
+      textAlign: "center"
+    }}>
+      {status === "loading" && <h1>🎬 Se generează video-ul...</h1>}
+      {status === "error" && <h1>❌ Eroare la generare</h1>}
+      {status === "done" && videoUrl && (
+        <video controls style={{ maxWidth: "100%", borderRadius: "20px" }}>
+          <source src={videoUrl} type="video/mp4" />
+        </video>
+      )}
     </div>
   );
 }
