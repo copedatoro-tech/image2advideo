@@ -1,19 +1,19 @@
 import { NextResponse } from "next/server";
 import { generateVideo } from "@/lib/video-engine/generateVideo";
 
-export async function POST() {
+export async function POST(req: Request) {
   try {
-    const result = await generateVideo();
+    const { imageUrl } = await req.json();
 
-    return NextResponse.json({
-      ok: true,
-      result,
-    });
+    if (!imageUrl) {
+      return new NextResponse("Missing imageUrl", { status: 400 });
+    }
+
+    const video = await generateVideo(imageUrl);
+
+    return NextResponse.json({ video });
   } catch (error) {
     console.error("Render video error:", error);
-    return NextResponse.json(
-      { ok: false, error: "Video render failed" },
-      { status: 500 }
-    );
+    return new NextResponse("Video generation failed", { status: 500 });
   }
 }
