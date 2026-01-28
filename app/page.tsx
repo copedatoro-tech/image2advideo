@@ -55,38 +55,43 @@ export default function Home() {
 
   // FUNCȚIA REPARATĂ PENTRU PLATĂ
   async function handleCreateVideo() {
-    if (images.length === 0) return alert("Te rugăm să adaugi cel puțin o imagine.");
-    
-    setLoading(true);
-    try {
-      const res = await fetch("/api/stripe/checkout", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ 
-          price: totalPrice, 
-          duration, 
-          format, 
-          style, 
-          aiEnabled,
-          imageCount: images.length 
-        }),
-      });
-
-      if (!res.ok) throw new Error("Eroare la comunicarea cu serverul de plată.");
-
-      const data = await res.json();
-      if (data.url) {
-        window.location.href = data.url; // Redirecționare către Stripe
-      } else {
-        alert("Nu s-a putut genera link-ul de plată.");
-      }
-    } catch (error) {
-      console.error(error);
-      alert("A apărut o problemă. Te rugăm să încerci din nou.");
-    } finally {
-      setLoading(false);
-    }
+  if (images.length === 0) {
+    alert("Te rugăm să adaugi imagini");
+    return;
   }
+
+  setLoading(true);
+
+  try {
+    const res = await fetch("/api/stripe/checkout", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        price: totalPrice,
+        duration,
+        format,
+        style,
+        aiEnabled,
+        imageCount: images.length,
+      }),
+    });
+
+    const data = await res.json();
+
+    if (!res.ok || !data.url) {
+      alert(data.error || "Nu s-a putut genera link-ul de plată");
+      return;
+    }
+
+    // 🔁 Redirecționare către Stripe
+    window.location.href = data.url;
+  } catch (error) {
+    console.error("Stripe checkout error:", error);
+    alert("A apărut o problemă. Te rugăm să încerci din nou.");
+  } finally {
+    setLoading(false);
+  }
+}
 
   return (
     <div style={{ 
