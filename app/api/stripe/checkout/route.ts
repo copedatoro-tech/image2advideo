@@ -1,5 +1,3 @@
-// app/api/stripe/checkout/route.ts
-
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
 
@@ -17,21 +15,33 @@ export async function POST(req: Request) {
       throw new Error("NEXT_PUBLIC_BASE_URL is missing");
     }
 
+    const { price, jobId } = body;
+
+    if (!jobId) {
+      throw new Error("Missing jobId");
+    }
+
     const session = await stripe.checkout.sessions.create({
       mode: "payment",
       payment_method_types: ["card"],
       line_items: [
         {
           price_data: {
-            currency: "ron", // 🔥 AICI SETĂM LEI
+            currency: "ron",
             product_data: {
               name: "Video generat",
             },
-            unit_amount: body.price * 100, // 100 = conversie bani → bani * 100
+            unit_amount: price * 100, // 2 RON → 200 bani
           },
           quantity: 1,
         },
       ],
+
+      // 🔥 Trimitem jobId către Stripe
+      metadata: {
+        jobId,
+      },
+
       success_url: `${baseUrl}/success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${baseUrl}/cancel`,
     });
