@@ -1,10 +1,8 @@
-import { Suspense } from "react";
+"use client";
+
 import PayClient from "./PayClient";
 
-export default function Page() {
-  return (
-    <Suspense fallback={<div>Loading...</div>}>
-      <PayClient />
-    </Suspense>
-  );
+export default function PayPage({ searchParams }: any) {
+  return <PayClient />;
 }
+
