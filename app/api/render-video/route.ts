@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { generateVideo } from "@/video-engine/render";
+import { generateVideo } from "../../../video-engine/render";
 
 export async function POST(req: Request) {
   try {
@@ -13,15 +13,13 @@ export async function POST(req: Request) {
       sessionId,
     } = body;
 
-    // VALIDĂRI MINIME
-    if (!imageUrl || !sessionId) {
+    if (!sessionId) {
       return NextResponse.json(
         { error: "Date lipsă" },
         { status: 400 }
       );
     }
 
-    // GENERARE VIDEO
     const videoName = await generateVideo({
       imageUrl,
       videoDuration,
@@ -29,7 +27,6 @@ export async function POST(req: Request) {
       aiEnabled,
     });
 
-    // TOKEN DOWNLOAD (expiră 72h)
     const expiresAt = Date.now() + 72 * 60 * 60 * 1000;
     const token = `${videoName}__${expiresAt}`;
 
