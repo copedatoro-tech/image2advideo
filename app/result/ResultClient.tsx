@@ -1,110 +1,76 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useSearchParams, useRouter } from "next/navigation";
 
-type Props = {
-  sessionId: string | null;
-};
+export default function ResultPage() {
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const sessionId = searchParams.get("session_id");
 
-export default function ResultClient({ sessionId }: Props) {
-  const [sendEmail, setSendEmail] = useState(false);
+  const [status, setStatus] = useState<"loading" | "error">("loading");
 
-  if (!sessionId) {
+  useEffect(() => {
+    if (!sessionId) {
+      setStatus("error");
+      return;
+    }
+
+    const processPayment = async () => {
+      try {
+        // 1️⃣ verificăm plata
+        const verifyRes = await fetch(
+          `/api/verify-payment?session_id=${sessionId}`
+        );
+        const verifyData = await verifyRes.json();
+
+        if (!verifyData.paid) {
+          setStatus("error");
+          return;
+        }
+
+        // 2️⃣ generăm video
+        const renderRes = await fetch("/api/render-video", {
+          method: "POST",
+        });
+
+        const renderData = await renderRes.json();
+
+        if (!renderData.success || !renderData.videoUrl) {
+          setStatus("error");
+          return;
+        }
+
+        // 3️⃣ creăm token 72h
+        const filename = renderData.videoUrl.split("/").pop();
+        const expiresAt = Date.now() + 72 * 60 * 60 * 1000;
+        const token = `${filename}__${expiresAt}`;
+
+        // 4️⃣ redirect final
+        router.replace(`/download?token=${token}`);
+      } catch (err) {
+        console.error(err);
+        setStatus("error");
+      }
+    };
+
+    processPayment();
+  }, [sessionId, router]);
+
+  if (status === "loading") {
     return (
-      <div style={styles.page}>
-        <h2 style={{ color: "red" }}>❌ Session ID lipsește</h2>
+      <div style={{ padding: 60, textAlign: "center", color: "#fff" }}>
+        <h2>Se procesează plata și se generează video-ul…</h2>
+        <p>Te rugăm să aștepți câteva momente.</p>
       </div>
     );
   }
 
-  const videoUrl = "/videos/demo.mp4"; // demo / fallback
-
   return (
-    <div style={styles.page}>
-      <h1 style={styles.title}>Videoclipul tău este gata</h1>
-
-      <div style={styles.card}>
-        <video
-          src={videoUrl}
-          controls
-          style={styles.video}
-        />
-
-        <label style={styles.checkboxRow}>
-          <input
-            type="checkbox"
-            checked={sendEmail}
-            onChange={(e) => setSendEmail(e.target.checked)}
-          />
-          <span>
-            Trimite pe e-mail (atașament + link valabil 72h)
-          </span>
-        </label>
-
-        <button
-          style={styles.downloadBtn}
-          onClick={() => {
-            if (sendEmail) {
-              alert("✔ Video-ul va fi trimis și pe e-mail");
-            }
-            window.location.href = videoUrl;
-          }}
-        >
-          Descarcă video
-        </button>
-      </div>
+    <div style={{ padding: 60, textAlign: "center", color: "#fff" }}>
+      <h2>A apărut o eroare.</h2>
+      <p>Te rugăm să ne contactezi sau să reîncerci.</p>
     </div>
   );
 }
 
-const styles: Record<string, React.CSSProperties> = {
-  page: {
-    minHeight: "100vh",
-    background: "#000",
-    color: "#fff",
-    display: "flex",
-    flexDirection: "column",
-    alignItems: "center",
-    paddingTop: "60px",
-  },
-  title: {
-    marginBottom: "30px",
-    fontSize: "32px",
-    fontWeight: 700,
-  },
-  card: {
-    background: "#111",
-    borderRadius: "16px",
-    padding: "24px",
-    width: "100%",
-    maxWidth: "420px",
-    boxShadow: "0 0 40px rgba(0,0,0,0.6)",
-    display: "flex",
-    flexDirection: "column",
-    gap: "16px",
-  },
-  video: {
-    width: "100%",
-    maxHeight: "360px",
-    borderRadius: "12px",
-    objectFit: "contain",
-    background: "#000",
-  },
-  checkboxRow: {
-    display: "flex",
-    alignItems: "center",
-    gap: "10px",
-    fontSize: "14px",
-    opacity: 0.9,
-  },
-  downloadBtn: {
-    background: "#4fe3c1", // verde ca pe homepage
-    color: "#000",
-    border: "none",
-    padding: "14px",
-    borderRadius: "10px",
-    fontSize: "16px",
-    fontWeight: 600,
-    cursor: "pointer",
-  },
-};
